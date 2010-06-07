@@ -55,6 +55,12 @@ class TestOfPostMySQLDAO extends ThinkTankUnitTestCase {
         $q = "INSERT INTO tt_users (user_id, user_name, full_name, avatar, is_protected, follower_count) VALUES (22, 'quoter', 'Quotables', 'avatar.jpg', 0, 80);";
         PDODAO::$PDO->exec($q);
 
+        $q = "INSERT INTO tt_users (user_id, user_name, full_name, avatar, is_protected, follower_count) VALUES (23, 'user3', 'User 3', 'avatar.jpg', 0, 100);";
+        PDODAO::$PDO->exec($q);
+
+        $q = "INSERT INTO tt_users (user_id, user_name, full_name, avatar, is_protected, follower_count) VALUES (24, 'notonpublictimeline', 'Not on Public Timeline', 'avatar.jpg', 1, 100);";
+        PDODAO::$PDO->exec($q);
+
         //Make public
         $q = "INSERT INTO tt_instances (network_user_id, network_username, is_public) VALUES (13, 'ev', 1);";
         PDODAO::$PDO->exec($q);
@@ -63,6 +69,12 @@ class TestOfPostMySQLDAO extends ThinkTankUnitTestCase {
         PDODAO::$PDO->exec($q);
 
         $q = "INSERT INTO tt_instances (network_user_id, network_username, is_public) VALUES (19, 'linkbaiter', 1);";
+        PDODAO::$PDO->exec($q);
+
+        $q = "INSERT INTO tt_instances (network_user_id, network_username, is_public) VALUES (23, 'user3', 1);";
+        PDODAO::$PDO->exec($q);
+
+        $q = "INSERT INTO tt_instances (network_user_id, network_username, is_public) VALUES (24, 'notonpublictimeline', 0);";
         PDODAO::$PDO->exec($q);
 
         //Add straight text posts
@@ -108,9 +120,9 @@ class TestOfPostMySQLDAO extends ThinkTankUnitTestCase {
             $post_id = $counter + 120;
             $pseudo_minute = str_pad(($counter), 2, "0", STR_PAD_LEFT);
             if ( ($counter/2) == 0 ) {
-                $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache, in_reply_to_post_id) VALUES ($post_id, 20, 'user1', 'User 1', 'avatar.jpg', 'Hey @ev and @jack thanks for founding Twitter  post $counter', 'web', '2006-03-01 00:$pseudo_minute:00', 0, 0, 0);";
+                $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache) VALUES ($post_id, 20, 'user1', 'User 1', 'avatar.jpg', 'Hey @ev and @jack thanks for founding Twitter  post $counter', 'web', '2006-03-01 00:$pseudo_minute:00', 0, 0);";
             } else {
-                $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache, in_reply_to_post_id) VALUES ($post_id, 21, 'user2', 'User 2', 'avatar.jpg', 'Hey @ev and @jack should fix Twitter - post $counter', 'web', '2006-03-01 00:$pseudo_minute:00', 0, 0, 0);";
+                $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache) VALUES ($post_id, 21, 'user2', 'User 2', 'avatar.jpg', 'Hey @ev and @jack should fix Twitter - post $counter', 'web', '2006-03-01 00:$pseudo_minute:00', 0, 0);";
             }
             PDODAO::$PDO->exec($q);
 
@@ -133,7 +145,7 @@ class TestOfPostMySQLDAO extends ThinkTankUnitTestCase {
 
         //Add retweets of a specific post
         //original post
-        $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache, in_reply_to_post_id) VALUES (134, 22, 'quoter', 'Quoter of Quotables', 'avatar.jpg', 'Be liberal in what you accept and conservative in what you send', 'web', '2006-03-01 00:00:00', 0, 0, 0);";
+        $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache) VALUES (134, 22, 'quoter', 'Quoter of Quotables', 'avatar.jpg', 'Be liberal in what you accept and conservative in what you send', 'web', '2006-03-01 00:00:00', 0, 0);";
         PDODAO::$PDO->exec($q);
         //retweet 1
         $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache, in_retweet_of_post_id) VALUES (135, 20, 'user1', 'User 1', 'avatar.jpg', 'RT @quoter Be liberal in what you accept and conservative in what you send', 'web', '2006-03-01 00:00:00', 0, 0, 134);";
@@ -150,12 +162,23 @@ class TestOfPostMySQLDAO extends ThinkTankUnitTestCase {
         PDODAO::$PDO->exec($q);
 
         //Add user exchange
-        $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache, in_reply_to_user_id, in_reply_to_post_id) VALUES (139, 20, 'user1', 'User 1', 'avatar.jpg', '@ev When will Twitter have a business model?', 'web', '2006-03-01 00:00:00', 0, 0, 13, 0);";
+        $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache, in_reply_to_user_id) VALUES (139, 20, 'user1', 'User 1', 'avatar.jpg', '@ev When will Twitter have a business model?', 'web', '2006-03-01 00:00:00', 0, 0, 13);";
         PDODAO::$PDO->exec($q);
 
         $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache, in_reply_to_user_id, in_reply_to_post_id) VALUES (140, 13, 'ev', 'Ev Williams', 'avatar.jpg', '@user1 Soon....', 'web', '2006-03-01 00:00:00', 0, 0, 20, 139);";
         PDODAO::$PDO->exec($q);
 
+        //Add posts replying to post not in the system
+        $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache, in_reply_to_user_id, in_reply_to_post_id) VALUES (141, 23, 'user3', 'User 3', 'avatar.jpg', '@user4 I\'m replying to a post not in the TT db', 'web', '2006-03-01 00:00:00', 0, 0, 20, 150);";
+        PDODAO::$PDO->exec($q);
+
+        $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date, mention_count_cache, retweet_count_cache, in_reply_to_user_id, in_reply_to_post_id) VALUES (142, 23, 'user3', 'User 3', 'avatar.jpg', '@user4 I\'m replying to another post not in the TT db', 'web', '2006-03-01 00:00:00', 0, 0, 20, 151);";
+        PDODAO::$PDO->exec($q);
+
+        //Add post by instance not on public timeline
+        $q = "INSERT INTO tt_posts (post_id, author_user_id, author_username, author_fullname, author_avatar, post_text, source, pub_date) VALUES (143, 24, 'notonpublictimeline', 'Not on public timeline', 'avatar.jpg', 'This post should not be on the public timeline', 'web', '2006-03-01 00:00:00');";
+        PDODAO::$PDO->exec($q);
+        
     }
 
     function tearDown() {
@@ -170,6 +193,52 @@ class TestOfPostMySQLDAO extends ThinkTankUnitTestCase {
         $this->assertTrue(isset($dao));
     }
 
+    /**
+     * Test getOrphanReplies
+     */
+    function testGetOrphanReplies() {
+        $dao = new PostMySQLDAO();
+        $replies = $dao ->getOrphanReplies('ev', 10, 'twitter');
+        $this->assertEqual(sizeof($replies), 10);
+        $this->assertEqual($replies[0]->post_text, "Hey @ev and @jack should fix Twitter - post 9");
+
+        $replies = $dao ->getOrphanReplies('jack', 10, 'twitter');
+        $this->assertEqual(sizeof($replies), 10);
+        $this->assertEqual($replies[0]->post_text, "Hey @ev and @jack should fix Twitter - post 9");
+    }
+
+    /**
+     * Test getLikelyOrphansForParent
+     */
+    function testGetLikelyOrphansForParent() {
+        $dao = new PostMySQLDAO();
+        $posts = $dao->getLikelyOrphansForParent('2006-03-01', 13, 'ev', 10);
+        $this->assertEqual(sizeof($posts), 9);
+        $this->assertEqual($posts[0]->post_text, "Hey @ev and @jack should fix Twitter - post 1");
+    }
+     
+    /**
+     * Test getStrayRepliedToPosts
+     */
+    function testGetStrayRepliedToPosts() {
+        $dao = new PostMySQLDAO();
+        $posts = $dao->getStrayRepliedToPosts(23);
+        $this->assertEqual(sizeof($posts), 2);
+        $this->assertEqual($posts[0]["in_reply_to_post_id"], 150);
+        $this->assertEqual($posts[1]["in_reply_to_post_id"], 151);
+    }
+     
+    /**
+     * Test isPostByPublicInstance
+     */
+    function testIsPostByPublicInstance() {
+        $dao = new PostMySQLDAO();
+        //post by ev (public instance)
+        $this->assertTrue($dao->isPostByPublicInstance(140));
+        //post by notapublicinstance
+        $this->assertTrue(!$dao->isPostByPublicInstance(143));
+    }
+     
     /**
      * Test getMostRepliedToPosts
      */
@@ -314,11 +383,13 @@ class TestOfPostMySQLDAO extends ThinkTankUnitTestCase {
     function testGetStandaloneReplies() {
         $dao = new PostMySQLDAO();
         $posts = $dao->getStandaloneReplies('jack', 15);
+
         $this->assertEqual(sizeof($posts), 10);
         $this->assertEqual($posts[0]->post_text, 'Hey @ev and @jack should fix Twitter - post 9', "Standalone mention");
         $this->assertEqual($posts[0]->author->username, 'user2', "Post author");
 
         $posts = $dao->getStandaloneReplies('ev', 15);
+
         $this->assertEqual(sizeof($posts), 11);
         $this->assertEqual($posts[0]->post_text, 'Hey @ev and @jack should fix Twitter - post 9', "Standalone mention");
         $this->assertEqual($posts[0]->author->username, 'user2', "Post author");
@@ -620,9 +691,9 @@ class TestOfPostMySQLDAO extends ThinkTankUnitTestCase {
         $pdao = new PostMySQLDAO();
         $page_of_posts = $pdao->getLinkPostsByPublicInstances(3, 15);
 
-        $this->assertTrue(sizeof($page_of_posts) == 11);
+        $this->assertTrue(sizeof($page_of_posts) == 11, "Should be ".sizeof($page_of_posts));
         $this->assertTrue($page_of_posts[0]->post_text == "This is link post 9");
-        $this->assertTrue($page_of_posts[9]->post_text == "@shutterbug This is a link post reply http://example.com/");
+        $this->assertTrue($page_of_posts[10]->post_text == "@shutterbug This is a link post reply http://example.com/");
     }
 
     function testGetTotalLinkPagesAndPostsByPublicInstances() {

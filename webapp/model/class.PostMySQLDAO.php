@@ -82,7 +82,7 @@ class PostMySQLDAO extends PDODAO implements PostDAO  {
             $q .= " post_text LIKE :username ";
         }
 
-        $q .= " AND in_reply_to_post_id = 0 ";
+        $q .= " AND in_reply_to_post_id is null ";
         $q .= " ORDER BY adj_pub_date DESC ";
         $q .= " LIMIT :limit";
         $vars = array(
@@ -463,49 +463,66 @@ class PostMySQLDAO extends PDODAO implements PostDAO  {
         return $this->getAllPostsByUserID($user_id, $count, "retweet_count_cache", "DESC");
     }
 
-    //    function getOrphanReplies($username, $count, $network = "twitter") {
-    //
-    //        $q = " SELECT t.* , u.*, pub_date - interval #gmt_offset# hour as adj_pub_date ";
-    //        $q .= " FROM #prefix#posts AS t ";
-    //        $q .= " INNER JOIN #prefix#users AS u ON u.user_id = t.author_user_id ";
-    //        $q .= " WHERE ";
-    //        $q .= ' MATCH (`post_text`) AGAINST(\'"'.$username.'"\' IN BOOLEAN MODE)';
-    //        $q .= " AND in_reply_to_post_id is null ";
-    //        $q .= " AND in_retweet_of_post_id is null ";
-    //        $q .= " AND t.network = '".$network."' ";
-    //        $q .= " ORDER BY pub_date DESC ";
-    //        $q .= " LIMIT ".$count.";";
-    //        $sql_result = $this->executeSQL($q);
-    //        $orphan_replies = array();
-    //        while ($row = mysql_fetch_assoc($sql_result)) {
-    //            $orphan_replies[] = $this->setPostWithAuthor($row);
-    //        }
-    //        mysql_free_result($sql_result);
-    //        return $orphan_replies;
-    //    }
-    //
-    //    function getLikelyOrphansForParent($parent_pub_date, $author_user_id, $author_username, $count) {
-    //
-    //        $q = " SELECT t.* , u.*, pub_date - interval #gmt_offset# hour as adj_pub_date ";
-    //        $q .= " FROM #prefix#posts AS t ";
-    //        $q .= " INNER JOIN #prefix#users AS u ON t.author_user_id = u.user_id ";
-    //        $q .= " WHERE ";
-    //        $q .= ' MATCH (`post_text`) AGAINST(\'"'.$author_username.'"\' IN BOOLEAN MODE)';
-    //        $q .= " AND pub_date > '".$parent_pub_date."' ";
-    //        $q .= " AND in_reply_to_post_id IS NULL ";
-    //        $q .= " AND in_retweet_of_post_id IS NULL ";
-    //        $q .= " AND t.author_user_id != ".$author_user_id;
-    //        $q .= " ORDER BY pub_date ASC ";
-    //        $q .= " LIMIT ".$count;
-    //        $sql_result = $this->executeSQL($q);
-    //        $likely_orphans = array();
-    //        while ($row = mysql_fetch_assoc($sql_result)) {
-    //            $likely_orphans[] = $this->setPostWithAuthor($row);
-    //        }
-    //        mysql_free_result($sql_result);
-    //        return $likely_orphans;
-    //
-    //    }
+    public function getOrphanReplies($username, $count, $network = "twitter") {
+        $username = "@".$username;
+        $q = " SELECT p.* , u.*, pub_date - interval #gmt_offset# hour as adj_pub_date ";
+        $q .= " FROM #prefix#posts p ";
+        $q .= " INNER JOIN #prefix#users u ON u.user_id = p.author_user_id WHERE ";
+        if ( strlen($username) > PostMySQLDAO::FULLTEXT_CHAR_MINIMUM ) { //fulltext search only works for words longer than 4 chars
+            $q .= " MATCH (`post_text`) AGAINST(:username IN BOOLEAN MODE) ";
+        } else {
+            $username = '%'.$username .'%';
+            $q .= " post_text LIKE :username ";
+        }
+        $q .= " AND in_reply_to_post_id is null ";
+        $q .= " AND in_retweet_of_post_id is null ";
+        $q .= " AND p.network = :network ";
+        $q .= " ORDER BY pub_date DESC LIMIT :limit;";
+        $vars = array(
+            ':username'=>$username,
+            ':network'=>$network,
+            ':limit'=>$count
+        );
+        $ps = $this->execute($q, $vars);
+        $all_rows = $this->getDataRowsAsArrays($ps);
+        $all_posts = array();
+        foreach ($all_rows as $row) {
+            $all_posts[] = $this->setPostWithAuthor($row);
+        }
+        return $all_posts;
+    }
+
+    public function getLikelyOrphansForParent($parent_pub_date, $author_user_id, $author_username, $count) {
+        $username = "@".$author_username;
+        $q = " SELECT p.* , u.*, pub_date - interval #gmt_offset# hour as adj_pub_date ";
+        $q .= " FROM #prefix#posts p ";
+        $q .= " INNER JOIN #prefix#users AS u ON p.author_user_id = u.user_id WHERE ";
+        if ( strlen($username) > PostMySQLDAO::FULLTEXT_CHAR_MINIMUM ) { //fulltext search only works for words longer than 4 chars
+            $q .= " MATCH (`post_text`) AGAINST(:username IN BOOLEAN MODE) ";
+        } else {
+            $username = '%'.$username .'%';
+            $q .= " post_text LIKE :username ";
+        }
+        $q .= " AND pub_date > :parent_pub_date ";
+        $q .= " AND in_reply_to_post_id IS NULL ";
+        $q .= " AND in_retweet_of_post_id IS NULL ";
+        $q .= " AND p.author_user_id != :author_user_id ";
+        $q .= " ORDER BY pub_date ASC ";
+        $q .= " LIMIT :limit";
+        $vars = array(
+            ':username'=>$username,
+            ':parent_pub_date'=>$parent_pub_date,
+            ':author_user_id'=>$author_user_id,
+            ':limit'=>$count
+        );
+        $ps = $this->execute($q, $vars);
+        $all_rows = $this->getDataRowsAsArrays($ps);
+        $all_posts = array();
+        foreach ($all_rows as $row) {
+            $all_posts[] = $this->setPostWithAuthor($row);
+        }
+        return $all_posts;
+    }
 
     public function assignParent($parent_id, $orphan_id, $former_parent_id = -1) {
         $post = $this->getPost($orphan_id);
@@ -547,25 +564,17 @@ class PostMySQLDAO extends PDODAO implements PostDAO  {
         return $this->getUpdateCount($ps);
     }
 
-    //
-    //    function getStrayRepliedToPosts($author_id) {
-    //        $q = "
-    //            SELECT
-    //                in_reply_to_post_id
-    //            FROM
-    //                #prefix#posts t
-    //            WHERE
-    //                t.author_user_id=".$author_id."
-    //                AND t.in_reply_to_post_id NOT IN (select post_id from #prefix#posts)
-    //                 AND t.in_reply_to_post_id NOT IN (select post_id from #prefix#post_errors);";
-    //        $sql_result = $this->executeSQL($q);
-    //        $strays = array();
-    //        while ($row = mysql_fetch_assoc($sql_result)) {
-    //            $strays[] = $row;
-    //        }
-    //        mysql_free_result($sql_result);
-    //        return $strays;
-    //    }
+    public function getStrayRepliedToPosts($author_id) {
+        $q = "SELECT in_reply_to_post_id FROM #prefix#posts p ";
+        $q .= "WHERE p.author_user_id=:author_id ";
+        $q .= "AND p.in_reply_to_post_id NOT IN (select post_id from #prefix#posts) ";
+        $q .= "AND p.in_reply_to_post_id NOT IN (select post_id from #prefix#post_errors);";
+        $vars = array(
+            ':author_id'=>$author_id
+        );
+        $ps = $this->execute($q, $vars);
+        return $this->getDataRowsAsArrays($ps);
+    }
 
     /**
      * Get posts by public instances with custom sort order
@@ -683,35 +692,22 @@ class PostMySQLDAO extends PDODAO implements PostDAO  {
         return $this->getDataRowAsArray($ps);
     }
 
-    //    function getMostRepliedToPostsByPublicInstances($page, $count) {
-    //        return $this->getPostsByPublicInstancesOrderedBy($page, $count, "mention_count_cache");
-    //    }
-    //
-    //    function getMostRetweetedPostsByPublicInstances($page, $count) {
-    //        return $this->getPostsByPublicInstancesOrderedBy($page, $count, "retweet_count_cache");
-    //    }
-    //
-    //
-    //    function isPostByPublicInstance($id) {
-    //        $q = "
-    //            SELECT
-    //                *, pub_date - interval #gmt_offset# hour as adj_pub_date
-    //            FROM
-    //                #prefix#posts t
-    //            INNER JOIN
-    //                #prefix#instances i
-    //            ON
-    //                t.author_user_id = i.network_user_id
-    //            WHERE
-    //                i.is_public = 1 and t.post_id = ".$id.";";
-    //        $sql_result = $this->executeSQL($q);
-    //        if (mysql_num_rows($sql_result) > 0)
-    //        $r = true;
-    //        else
-    //        $r = false;
-    //
-    //        mysql_free_result($sql_result);
-    //        return $r;
-    //    }
+    public function getMostRepliedToPostsByPublicInstances($page, $count) {
+        return $this->getPostsByPublicInstancesOrderedBy($page, $count, "mention_count_cache");
+    }
 
+    public function getMostRetweetedPostsByPublicInstances($page, $count) {
+        return $this->getPostsByPublicInstancesOrderedBy($page, $count, "retweet_count_cache");
+    }
+
+    public function isPostByPublicInstance($post_id) {
+        $q = "SELECT *, pub_date - interval #gmt_offset# hour as adj_pub_date FROM #prefix#posts p ";
+        $q .= "INNER JOIN #prefix#instances i ON p.author_user_id = i.network_user_id ";
+        $q .= "WHERE i.is_public = 1 and p.post_id = :post_id;";
+        $vars = array(
+            ':post_id'=>$post_id
+        );
+        $ps = $this->execute($q, $vars);
+        return $this->getDataIsReturned($ps);
+    }
 }
