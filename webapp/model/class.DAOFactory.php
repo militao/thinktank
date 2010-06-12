@@ -24,47 +24,47 @@ class DAOFactory {
     static $dao_mapping = array (
     // our test dao
         'TestDAO' => array( 
-            //MySQL Version
+    //MySQL Version
             'mysql' => array( 'class' => 'TestMysqlDAO', 'path' =>  'tests/classes/class.TestMysqlDAO.php'),
-            //faux Version
+    //faux Version
             'faux' => array( 'class' => 'TestFauxDAO', 'path' =>  'tests/classes/class.TestFauxDAO.php'),
-        ),
+    ),
     //Instance DAO
         'InstanceDAO' => array(
-            //MySQL Version
+    //MySQL Version
             'mysql' => array( 'class' => 'InstanceMySQLDAO', 'path' => 'model/class.InstanceMySQLDAO.php')
 
-        ),
+    ),
     //Follow DAO
         'FollowDAO' => array(
-            //MySQL Version
+    //MySQL Version
             'mysql' => array( 'class' => 'FollowMySQLDAO', 'path' => 'model/class.InstanceMySQLDAO.php')
-        ),
+    ),
     //Post Error DAO
         'PostErrorDAO' => array(
-            //MySQL Version
+    //MySQL Version
             'mysql' => array( 'class' => 'PostErrorMySQLDAO', 'path' => 'model/class.PostErrorMySQLDAO.php')
-        ),
+    ),
     //Post DAO
         'PostDAO' => array(
-            //MySQL Version
+    //MySQL Version
             'mysql' => array( 'class' => 'PostMySQLDAO', 'path' => 'model/class.PostMySQLDAO.php')
-        ),
+    ),
     //User DAO
         'UserDAO' => array(
-            //MySQL Version
+    //MySQL Version
             'mysql' => array( 'class' => 'UserMySQLDAO', 'path' => 'model/class.UserMySQLDAO.php')
-        ),
+    ),
     //UserError DAO
         'UserErrorDAO' => array(
-            //MySQL Version
+    //MySQL Version
             'mysql' => array( 'class' => 'UserErrorMySQLDAO', 'path' => 'model/class.UserErrorMySQLDAO.php')
-        ),
+    ),
     //Link DAO
         'LinkDAO' => array(
-            //MySQL Version
+    //MySQL Version
             'mysql' => array( 'class' => 'LinkMySQLDAO', 'path' => 'model/class.LinkMySQLDAO.php')
-        )
+    )
     );
 
     /*

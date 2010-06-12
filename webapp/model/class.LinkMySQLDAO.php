@@ -1,18 +1,20 @@
 <?php
 /**
  * Link MySQL Data Access Object
- * 
+ *
  * @author Christoffer Viken <christoffer[at]viken[dot]me>
  * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
  */
+require_once 'model/class.PDODAO.php';
+require_once 'model/interface.LinkDAO.php';
 
 class LinkMySQLDAO extends PDODAO implements LinkDAO {
     public function insert(
-        $url,
-        $expanded,
-        $title,
-        $post_id,
-        $is_image = false
+    $url,
+    $expanded,
+    $title,
+    $post_id,
+    $is_image = false
     ){
         $is_image = $this->convertBoolToDB($is_image);
 
@@ -33,10 +35,10 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
     }
 
     public function saveExpandedURL(
-        $url,
-        $expanded,
-        $title = '',
-        $is_image = false
+    $url,
+    $expanded,
+    $title = '',
+    $is_image = false
     ){
         $is_image = $this->convertBoolToDB($is_image);
 
@@ -50,7 +52,7 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
             ':isimage'=>$is_image
         );
         $ps = $this->execute($q, $vars);
-        
+
         $ret = $this->getUpdateCount($ps);
         if ($ret > 0) {
             $this->logger->logStatus("Expanded URL $expanded for $url saved", get_class($this));
@@ -69,7 +71,7 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
             ':error'=>$error_text
         );
         $ps = $this->execute($q, $vars);
-        
+
         $ret = $this->getUpdateCount($ps);
         if ($ret > 0) {
             $this->logger->logStatus("Error '$error_text' saved for link ID $url saved", get_class($this));
@@ -80,11 +82,11 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
     }
 
     public function update(
-        $url,
-        $expanded,
-        $title,
-        $post_id,
-        $is_image = false
+    $url,
+    $expanded,
+    $title,
+    $post_id,
+    $is_image = false
     ){
         $q  = " UPDATE #prefix#links ";
         $q .= " SET expanded_url=:expanded, title=:title, ";
@@ -98,7 +100,7 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
             ':isimage'=>$is_image
         );
         $ps = $this->execute($q, $vars);
-        
+
         return $this->getUpdateCount($ps);
     }
 
@@ -153,7 +155,7 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
             ':limit'=>$limit
         );
         $ps = $this->execute($q, $vars);
-        
+
         $rows = $this->getDataRowsAsArrays($ps);
         $urls = array();
         foreach($rows as $row){
@@ -170,15 +172,15 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
         $q .= " GROUP BY l.url";
         $vars = array(
             ':url'=>$url."%"
-        );
-        $ps = $this->execute($q, $vars);
-        
-        $rows = $this->getDataRowsAsArrays($ps);
-        $urls = array();
-        foreach($rows as $row){
-            $urls[] = $row['url'];
-        }
-        return $urls;
+            );
+            $ps = $this->execute($q, $vars);
+
+            $rows = $this->getDataRowsAsArrays($ps);
+            $urls = array();
+            foreach($rows as $row){
+                $urls[] = $row['url'];
+            }
+            return $urls;
     }
 
     public function getLinkById($id) {
@@ -201,8 +203,8 @@ class LinkMySQLDAO extends PDODAO implements LinkDAO {
             ':url'=>$url
         );
         $ps = $this->execute($q, $vars);
-        
+
         return $this->getDataRowAsObject($ps, "Link");
     }
-    
+
 }
