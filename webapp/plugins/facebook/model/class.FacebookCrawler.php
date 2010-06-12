@@ -115,8 +115,13 @@ class FacebookCrawler {
             $posts = $thinktank_data["posts"];
 
             foreach ($posts as $post) {
-                $added_posts = $this->pd->addPost($post);
-                $this->logger->logStatus("Added $added_posts post for ".$post["user_name"].":".$post["post_text"], get_class($this));
+                if ( isset($post["user_name"]) ) {
+                    $added_posts = $this->pd->addPost($post);
+                    $this->logger->logStatus("Added $added_posts post for ".$post["user_name"].":".$post["post_text"], get_class($this));
+                } else {
+                    print_r($post);
+                    $this->logger->logStatus("Post author user_name is null so no post added.");
+                }
             }
 
             $users = $thinktank_data["users"];
