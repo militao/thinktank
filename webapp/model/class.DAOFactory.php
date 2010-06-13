@@ -33,7 +33,7 @@ class DAOFactory {
     ),
     //Follow MySQL DAO
         'FollowDAO' => array(
-            'mysql' => array( 'class' => 'FollowMySQLDAO', 'path' => 'model/class.InstanceMySQLDAO.php')
+            'mysql' => array( 'class' => 'FollowMySQLDAO', 'path' => 'model/class.FollowMySQLDAO.php')
     ),
     //Post Error MySQL DAO
         'PostErrorDAO' => array(
@@ -50,6 +50,10 @@ class DAOFactory {
     //UserError MySQL DAO
         'UserErrorDAO' => array(
             'mysql' => array( 'class' => 'UserErrorMySQLDAO', 'path' => 'model/class.UserErrorMySQLDAO.php')
+    ),
+    //Owner MySQL DAO
+        'OwnerDAO' => array(
+            'mysql' => array( 'class' => 'OwnerMySQLDAO', 'path' => 'model/class.OwnerMySQLDAO.php')
     )
     );
 
